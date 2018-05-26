@@ -1,6 +1,6 @@
 <?php
 
-namespace Artisan;
+namespace Zls\Artisan;
 
 use Z;
 
@@ -39,12 +39,12 @@ class Mysql extends Command
         });
         $dbExist = true;
         /**
-         * @var \Zls\Util\Mysql $UtilMysql
+         * @var \Zls\Artisan\Other\MysqlEI $MysqlEI
          */
-        $UtilMysql = null;
+        $MysqlEI = null;
         try {
             try {
-                $UtilMysql = z::extension('Util\Mysql');
+                $MysqlEI = z::extension('Artisan\Other\MysqlEI');
             } catch (\Exception $exc) {
                 $errMsg = $exc->getMessage();
                 z::throwIf(!preg_match('/Database Group(.*)Unknown database(.*)/', $errMsg), 'Database', $errMsg);
@@ -64,14 +64,14 @@ class Mysql extends Command
                 } catch (\Exception $exc) {
                     z::throwIf(true, 'Database', $sql . ' Error, Please manually create the database');
                 }
-                $UtilMysql = z::extension('Util\Mysql');
+                $ActionMysql = z::extension('Action\Mysql');
             }
             if ($dbExist && $backup) {
-                $allTable = $UtilMysql->allTable();
+                $allTable = $ActionMysql->allTable();
                 if (\count($allTable) > 0) {
                     echo 'Database exists, create a backup' . \PHP_EOL;
                     try {
-                        $msg = $UtilMysql->export(null, '', 'Backup_' . $this->prefix);
+                        $msg = $ActionMysql->export(null, '', 'Backup_' . $this->prefix);
                         foreach ($msg as $v) {
                             echo $v . \PHP_EOL;
                         }
@@ -94,7 +94,7 @@ class Mysql extends Command
                     }
                 }
             }
-            $res = $UtilMysql->import(z::realPath($this->dir . '/' . $filePath), $tablePrefix);
+            $res = $ActionMysql->import(z::realPath($this->dir . '/' . $filePath), $tablePrefix);
             foreach ($res as $v) {
                 echo $v . \PHP_EOL;
             }
@@ -106,9 +106,9 @@ class Mysql extends Command
 
     public function export(\Zls_CliArgs $args)
     {
-
         $table = $args->get('table');
         $filename = $args->get('filename');
+        $size = $args->get('size', 1024);
         if ($dir = $args->get('dir')) {
             $dir = z::realPathMkdir($dir, true);
         }
@@ -125,15 +125,12 @@ class Mysql extends Command
             $ignoreData = $_ignoreData;
         }
         /**
-         * @var \Zls\Util\Mysql $UtilMysql
+         * @var \Zls\Artisan\Other\MysqlEI $MysqlEI
          */
-        $UtilMysql = z::extension('Util\Mysql');
+        $MysqlEI = Z::extension('Artisan\Other\MysqlEI');
         try {
-            echo 'Start backup, please wait' . \PHP_EOL;
-            $res = $UtilMysql->export($table, $dir, $this->prefix, $ignoreData, $filename);
-            foreach ($res as $v) {
-                echo $v . \PHP_EOL;
-            }
+            echo parent::getColoredString('Start backup, please wait', 'light_blue') . PHP_EOL;
+            $MysqlEI->export($table, $dir, $this->prefix, $ignoreData, $filename, $size);
         } catch (\Exception $exc) {
             echo $exc->getMessage() . \PHP_EOL;
         }
