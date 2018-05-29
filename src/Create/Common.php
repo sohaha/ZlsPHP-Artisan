@@ -11,9 +11,9 @@ use Zls\Artisan\Command;
  * @email       seekwe@gmail.com
  * @updatetime    2017-2-27 16:52:51
  */
-class Common extends Command
+class Common
 {
-
+    use Command;
     const CREATE_MYSQL_CLASS_NAME = 'Zls\Artisan\Create\Mysql';
     private $hmvc;
 
@@ -98,7 +98,7 @@ class Common extends Command
                 $this->writeFile($typename, $classname, $method, $parentClass, $file, $tip, $style);
             } else {
                 $tip .= " [ {$classname} ] already exists. you can use -force to force the file.";
-                echo $this->Error($tip, $classname, $file);
+                echo self::error($tip);
             }
         } else {
             $this->writeFile($typename, $classname, $method, $parentClass, $file, $tip, $style);
@@ -121,7 +121,7 @@ class Common extends Command
         $obj = z::factory($typename . $classname);
         try {
             $ref = new \ReflectionClass($obj);
-            $factory = z::factory('Task\Artisan\Mysql', true)->afresh();
+            $factory = z::factory(self::CREATE_MYSQL_CLASS_NAME, true)->afresh();
             if ($factory) {
                 $content = file($file);
                 $place = 0;
@@ -145,32 +145,24 @@ class Common extends Command
                 }
                 if (!$place) {
                     $endLine = $ref->getEndLine() - 1;
-                    $_content = \trim(z::arrayGet($content, $endLine));
+                    $_content = trim(z::arrayGet($content, $endLine));
                     if (!$_content) {
                         $endLine = $endLine - 1;
-                        $_content = \trim(z::arrayGet($content, $endLine));
+                        $_content = trim(z::arrayGet($content, $endLine));
                     }
                     $content[$endLine] = $factory['code'] . \PHP_EOL . $_content;
                 }
                 $content = implode($content);
             }
             if ($content && file_put_contents($file, $content)) {
-                echo $this->Successfull($tip, $classname, $file);
+                echo self::success("{$tip} [ {$classname} ] created successfully.\n");
+                echo self::getColoredString("FilePath: {$file}");
             }
         } catch (\ReflectionException $e) {
             echo $e->getMessage();
         }
     }
 
-    private function Successfull($tip, $classname, $file)
-    {
-        $text = [''];
-        $text[] = parent::getColoredString("[ Successfull ]", 'white', 'green') . PHP_EOL;
-        $text[] = parent::getColoredString("{$tip} [ {$classname} ] created successfully.", 'green') . PHP_EOL;
-        $text[] = parent::getColoredString("FilePath: {$file}", 'dark_gray');
-
-        return join($text, PHP_EOL);
-    }
 
     private function writeFile($typename, $classname, $method, $parentClass, $file, $tip, $style)
     {
@@ -180,18 +172,9 @@ class Common extends Command
         }
         $content = $this->$style($typename, $classname, $parentClass, $method);
         if (file_put_contents($file, $content)) {
-            echo $this->Successfull($tip, $classname, $file);
+            echo self::success("{$tip} [ {$classname} ] created successfully.\n");
+            echo self::getColoredString("FilePath: {$file}");
         }
-    }
-
-    public function Error($tip, $classname, $file)
-    {
-        $text = [''];
-        $text[] = parent::getColoredString("[ Error ]", 'white', 'red') . PHP_EOL;
-        $text[] = parent::getColoredString("{$tip}", 'light_red') . PHP_EOL;
-        $text[] = parent::getColoredString("FilePath: {$file}", 'dark_gray') . PHP_EOL;
-
-        return join($text, PHP_EOL);
     }
 
     private function PSR0($typename, $classname, $parentClass, $method)

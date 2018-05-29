@@ -11,14 +11,15 @@ use Zls\Artisan\Command;
  * @email         seekwe@gmail.com
  * @updatetime    2017-5-31 12:11:36
  */
-class Mysql extends Command
+class Mysql
 {
+    use Command;
     private $type, $table, $dbGroup;
 
     public function creation($type, $table, $dbGroup)
     {
         if (empty($table)) {
-            Z::finish(parent::getColoredString('table name required, please use : -table TableName','red'));
+            Z::finish(self::getColoredString('table name required, please use : -table TableName', 'red'));
         } else {
             $this->type = $type;
             $this->table = $table;

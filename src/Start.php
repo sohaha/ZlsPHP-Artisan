@@ -1,5 +1,7 @@
 <?php
+
 namespace Zls\Artisan;
+
 use Z;
 
 /**
@@ -11,15 +13,17 @@ use Z;
  * @since         v0.0.1
  * @updatetime    2018-02-01 15:01
  */
-class Start extends Command {
+class Start extends Artisan
+{
     /**
      * @param \Zls_CliArgs $args
      */
-    public function execute(\Zls_CliArgs $args) {
+    public function execute(\Zls_CliArgs $args)
+    {
         $port = $args->get('port', $args->get(3, 3780));
-        $ip   = $args->get('host', '127.0.0.1');
-        $url  = $ip . ':' . $port;
-        $cmd  = z::phpPath() . ' -S ' . $url . ' -t ' . z::realPath(ZLS_PATH);
+        $ip = $args->get('host', '127.0.0.1');
+        $url = $ip . ':' . $port;
+        $cmd = z::phpPath() . ' -S ' . $url . ' -t ' . z::realPath(ZLS_PATH);
         if (file_exists($filePath = __DIR__ . '/StartRun.php')) {
             $cmd .= ' -file ' . $filePath;
         }
@@ -34,19 +38,21 @@ class Start extends Command {
         }
     }
 
-    public function title() {
+    public function title()
+    {
         return 'Quick Start';
     }
 
-    public function options() {
+    public function options()
+    {
         return [
             '-host  Listening IP',
             '-port  Listening Port',
         ];
-
     }
 
-    public function example() {
+    public function example()
+    {
         return [];
     }
 

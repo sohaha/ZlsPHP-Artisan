@@ -13,12 +13,25 @@ use Z;
  * @since         v0.0.1
  * @updatetime    2018-02-01 15:01
  */
-class Mysql extends Command
+class Mysql extends Artisan
 {
 
     private $dir = '../database';
     private $prefix = 'ArtisanExport_';
 
+    public function title()
+    {
+        return 'Mysql Backup';
+    }
+
+    public function options()
+    {
+        return [
+            '-filename  Database filePath',
+            '-backup    Import the old backup data',
+            '-ignore    Export the ignore tableNames, Multiple comma separated'
+        ];
+    }
 
     public function execute(\Zls_CliArgs $args)
     {
@@ -26,13 +39,13 @@ class Mysql extends Command
         if (method_exists($this, $method)) {
             $this->$method($args);
         } else {
-            echo "Mysql Command: export|import\n";
+            echo parent::getColoredString("Mysql Command: export|import\n");
         }
     }
 
     public function import(\Zls_CliArgs $args)
     {
-        $filePath = $args->get('file');
+        $filePath = $args->get('filename');
         $backup = $args->get('backup', true);
         $tablePrefix = z::tap(\explode(':', $args->get('prefix', '')), function ($prefix) {
             return (count($prefix) < 2) ? false : $prefix;
@@ -64,14 +77,14 @@ class Mysql extends Command
                 } catch (\Exception $exc) {
                     z::throwIf(true, 'Database', $sql . ' Error, Please manually create the database');
                 }
-                $ActionMysql = z::extension('Action\Mysql');
+                $MysqlEI = z::extension('Artisan\Other\MysqlEI');
             }
             if ($dbExist && $backup) {
-                $allTable = $ActionMysql->allTable();
+                $allTable = $MysqlEI->allTable();
                 if (\count($allTable) > 0) {
                     echo 'Database exists, create a backup' . \PHP_EOL;
                     try {
-                        $msg = $ActionMysql->export(null, '', 'Backup_' . $this->prefix);
+                        $msg = $MysqlEI->export(null, '', 'Backup_' . $this->prefix);
                         foreach ($msg as $v) {
                             echo $v . \PHP_EOL;
                         }
@@ -94,7 +107,7 @@ class Mysql extends Command
                     }
                 }
             }
-            $res = $ActionMysql->import(z::realPath($this->dir . '/' . $filePath), $tablePrefix);
+            $res = $MysqlEI->import(z::realPath($this->dir . '/' . $filePath), $tablePrefix);
             foreach ($res as $v) {
                 echo $v . \PHP_EOL;
             }
